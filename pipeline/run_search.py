@@ -47,7 +47,7 @@ def main():
 
     per_target_counts = {}
     all_records = []
-    seen_pmids = set()
+    seen_pmids = {"compound": set(), "mutation": set()}
     dup_count = 0
 
     compound_candidates = []
@@ -57,9 +57,13 @@ def main():
         pmids = client.search(query, protocol_version=PROTOCOL_VERSION)
         per_target_counts[f"{target.id}:{qtype}"] = len(pmids)
 
-        new_pmids = [p for p in pmids if p not in seen_pmids]
+        # Deduplicate ONLY within the same query type (compound vs mutation),
+        # never across types — a paper can legitimately be both a compound
+        # hit and a mutation hit for the same target, and both matter.
+        seen_for_type = seen_pmids[qtype]
+        new_pmids = [p for p in pmids if p not in seen_for_type]
         dup_count += len(pmids) - len(new_pmids)
-        seen_pmids.update(new_pmids)
+        seen_for_type.update(new_pmids)
 
         records = client.fetch_summaries(new_pmids, source_query=query, protocol_version=PROTOCOL_VERSION)
         for rec in records:
@@ -83,7 +87,8 @@ def main():
             all_records.append({"target_id": target.id, "query_type": qtype, **rec.__dict__})
 
     tracker.record_identification(per_target_counts)
-    tracker.record_deduplication(len(seen_pmids), dup_count)
+    total_unique = len(seen_pmids["compound"]) + len(seen_pmids["mutation"])
+    tracker.record_deduplication(total_unique, dup_count)
     tracker.export_summary()
     tracker.print_flow()
 
