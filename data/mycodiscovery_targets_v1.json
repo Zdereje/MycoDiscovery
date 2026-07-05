@@ -1,0 +1,819 @@
+{
+  "metadata": {
+    "database_title": "MycoDiscovery Target Explorer: Target-First Mycobacterial Drug Discovery Database",
+    "version": "1.0.0",
+    "curator": "Biostat & BioDiscovery LLC",
+    "structure": "category -> target -> published compound -> resistance mutation (each mutation individually cited)",
+    "total_categories": 8,
+    "total_targets": 47,
+    "verified_targets": 5,
+    "scaffold_targets": 42,
+    "total_compounds_catalogued": 13,
+    "total_mutations_catalogued": 36,
+    "taxonomy_corrections": [
+      "GuaB2 moved from 'Central Metabolism' to 'DNA/RNA Information Processing & Nucleotide Metabolism' — it supplies nucleotide precursors, not energy metabolism.",
+      "PanK, RibBA, DHPS, BioA/BioD split out of 'Amino Acid Biosynthesis' into a new 'Cofactor & Vitamin Biosynthesis' category — none of these produce amino acids.",
+      "LipB moved from 'Virulence & Host Adaptation' to 'Central Metabolism' (cross-referenced in Cofactor & Vitamin Biosynthesis) — it attaches cofactors to metabolic enzyme complexes, not a virulence factor.",
+      "UbiA function description corrected: in M. tuberculosis this is DPPR synthase (cell-wall precursor), not a menaquinone-synthesis enzyme; that role belongs to MenA (already correctly categorized)."
+    ],
+    "curation_note": "Cell Wall & Envelope Biosynthesis category: 5 of 9 targets (DprE1/E2, InhA, EmbCAB, MmpL3, Pks13) are literature-verified with real published compounds, resistance mutations, and citations. Remaining targets in this category and all targets in the other 7 categories are scaffolded (function/significance filled in, compound list empty) pending the same literature-curation pass."
+  },
+  "categories": [
+    {
+      "id": "cell_wall",
+      "name": "Cell Wall & Envelope Biosynthesis",
+      "targets": [
+        {
+          "id": "dpre1",
+          "name": "DprE1/E2",
+          "gene_locus": "Rv3790/Rv3791",
+          "function": "Arabinogalactan synthesis (decaprenylphosphoryl-beta-D-ribose 2'-epimerase)",
+          "significance": "Essential; one of the most extensively pursued TB drug targets — over a dozen distinct chemical scaffolds identified as inhibitors.",
+          "status": "verified",
+          "compounds": [
+            {
+              "name": "BTZ043",
+              "class": "Benzothiazinone",
+              "phase": "Phase IIa clinical trial",
+              "mechanism": "Covalent nitroso-adduct formation at Cys387 of DprE1, blocking arabinogalactan precursor synthesis.",
+              "mutations": [
+                {
+                  "gene": "dprE1",
+                  "aa_change": "C387S",
+                  "effect": "High-level resistance to BTZ043/PBTZ169",
+                  "citation": "Trefzer C et al., Characterization of DprE1-mediated benzothiazinone resistance in M. tuberculosis. Antimicrob Agents Chemother. 2016;60(11):6451-6459. PMC5075049"
+                },
+                {
+                  "gene": "dprE1",
+                  "aa_change": "C387A",
+                  "effect": "High-level resistance to BTZ043/PBTZ169",
+                  "citation": "Trefzer C et al., Antimicrob Agents Chemother. 2016;60(11):6451-6459. PMC5075049"
+                },
+                {
+                  "gene": "dprE1",
+                  "aa_change": "C387T",
+                  "effect": "High-level resistance to BTZ043/PBTZ169",
+                  "citation": "Trefzer C et al., Antimicrob Agents Chemother. 2016;60(11):6451-6459. PMC5075049"
+                },
+                {
+                  "gene": "dprE1",
+                  "aa_change": "C387G",
+                  "effect": "Intermediate-level resistance to BTZ043/PBTZ169",
+                  "citation": "Trefzer C et al., Antimicrob Agents Chemother. 2016;60(11):6451-6459. PMC5075049"
+                },
+                {
+                  "gene": "dprE1",
+                  "aa_change": "C387N",
+                  "effect": "Intermediate-level resistance to BTZ043/PBTZ169",
+                  "citation": "Trefzer C et al., Antimicrob Agents Chemother. 2016;60(11):6451-6459. PMC5075049"
+                },
+                {
+                  "gene": "rv0678",
+                  "aa_change": "frameshift (various)",
+                  "effect": "Low-level cross-resistance to BTZ043 (~1.7-fold IC50 shift) via MmpS5-MmpL5 efflux upregulation",
+                  "citation": "Poulton NC et al., Mutations in rv0678 confer low-level resistance to benzothiazinone DprE1 inhibitors in M. tuberculosis. bioRxiv 2022.06.29.498178; PubMed 35920665"
+                }
+              ]
+            },
+            {
+              "name": "PBTZ169 (Macozinone)",
+              "class": "Benzothiazinone",
+              "phase": "Phase IIa clinical trial (Russia)",
+              "mechanism": "Highly potent covalent DprE1 inhibitor via the same Cys387 nitroso-adduct mechanism as BTZ043.",
+              "mutations": [
+                {
+                  "gene": "dprE1",
+                  "aa_change": "C387S",
+                  "effect": "High-level resistance",
+                  "citation": "Trefzer C et al., Antimicrob Agents Chemother. 2016;60(11):6451-6459. PMC5075049"
+                },
+                {
+                  "gene": "rv0678",
+                  "aa_change": "frameshift (various)",
+                  "effect": "Low-level cross-resistance (~2.4-4-fold IC50 shift) via efflux pump upregulation",
+                  "citation": "Poulton NC et al., bioRxiv 2022.06.29.498178; PubMed 35920665"
+                }
+              ]
+            },
+            {
+              "name": "TBA-7371",
+              "class": "Azaindole (structurally distinct, non-covalent)",
+              "phase": "Phase I/II clinical development",
+              "mechanism": "Non-covalent DprE1 inhibitor, structurally distinct from the benzothiazinones.",
+              "mutations": [
+                {
+                  "gene": "rv0678",
+                  "aa_change": "loss-of-function (various)",
+                  "effect": "Reduced susceptibility, though less pronounced than for BTZ043/PBTZ169/bedaquiline",
+                  "citation": "Poulton NC et al., Mutations in Rv0678 Reduce Susceptibility of M. tuberculosis to the DprE1 Inhibitor TBA-7371. Antimicrob Agents Chemother. 2023. doi:10.1128/aac.00052-23"
+                }
+              ]
+            },
+            {
+              "name": "OPC-167832",
+              "class": "Carbostyril",
+              "phase": "Phase II clinical trial (part of novel regimens)",
+              "mechanism": "Covalent DprE1 inhibitor of a distinct chemotype from benzothiazinones.",
+              "mutations": [
+                {
+                  "gene": "rv0678",
+                  "aa_change": "loss-of-function (various)",
+                  "effect": "Cross-resistance reported alongside BTZ043/PBTZ169",
+                  "citation": "Poulton NC et al., Antimicrob Agents Chemother. 2023. doi:10.1128/aac.00052-23"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "inha",
+          "name": "InhA",
+          "gene_locus": "Rv1484",
+          "function": "Mycolic acid synthesis (enoyl-ACP reductase, FAS-II elongation cycle)",
+          "significance": "Target of isoniazid (after KatG pro-drug activation) and of a growing class of direct InhA inhibitors designed to bypass KatG-mediated resistance.",
+          "status": "verified",
+          "compounds": [
+            {
+              "name": "Isoniazid (INH)",
+              "class": "Isonicotinylhydrazide (pro-drug)",
+              "phase": "Marketed first-line",
+              "mechanism": "Activated by KatG to form an INH-NAD adduct that inhibits InhA; requires functional KatG.",
+              "mutations": [
+                {
+                  "gene": "katG",
+                  "aa_change": "S315T",
+                  "effect": "High-level INH resistance (most common clinical mutation, loss of pro-drug activation)",
+                  "citation": "WHO Catalogue of mutations in M. tuberculosis complex, 2nd ed., 2023"
+                },
+                {
+                  "gene": "inhA",
+                  "aa_change": "promoter c.-15C>T",
+                  "effect": "Low-level INH resistance via InhA overexpression",
+                  "citation": "WHO Catalogue of mutations in M. tuberculosis complex, 2nd ed., 2023"
+                }
+              ]
+            },
+            {
+              "name": "NITD-916",
+              "class": "4-hydroxy-2-pyridone (direct InhA inhibitor)",
+              "phase": "Preclinical (mouse efficacy demonstrated)",
+              "mechanism": "Binds directly to InhA in an NADH-dependent manner, blocking the enoyl-substrate pocket without requiring KatG activation.",
+              "mutations": [
+                {
+                  "gene": "inhA",
+                  "aa_change": "S94A",
+                  "effect": "Resistance to NITD-916; not cross-resistant to isoniazid",
+                  "citation": "Manjunatha UH et al., Direct inhibitors of InhA are active against M. tuberculosis. Sci Transl Med. 2015; PMC4383039"
+                },
+                {
+                  "gene": "inhA",
+                  "aa_change": "D148G",
+                  "effect": "Resistance to NITD-916; not cross-resistant to isoniazid",
+                  "citation": "Manjunatha UH et al., Sci Transl Med. 2015; PMC4383039"
+                },
+                {
+                  "gene": "inhA",
+                  "aa_change": "D148E",
+                  "effect": "Resistance to NITD-916; not cross-resistant to isoniazid",
+                  "citation": "Manjunatha UH et al., Sci Transl Med. 2015; PMC4383039"
+                },
+                {
+                  "gene": "inhA",
+                  "aa_change": "G96A",
+                  "effect": "Resistance to NITD-916",
+                  "citation": "Manjunatha UH et al., Sci Transl Med. 2015; PMC4383039"
+                },
+                {
+                  "gene": "inhA",
+                  "aa_change": "M161I / M161A",
+                  "effect": "Resistance to NITD-916",
+                  "citation": "Manjunatha UH et al., Sci Transl Med. 2015; PMC4383039"
+                },
+                {
+                  "gene": "inhA",
+                  "aa_change": "T17A",
+                  "effect": "Resistance to NITD-916",
+                  "citation": "Manjunatha UH et al., Sci Transl Med. 2015; PMC4383039"
+                },
+                {
+                  "gene": "fabG1-inhA",
+                  "aa_change": "promoter mutations (various)",
+                  "effect": "Resistance to NITD-916; homologous to but not identical in effect to isoniazid promoter mutations",
+                  "citation": "Xu M et al., Mechanisms of resistance against NITD-916, a direct inhibitor of M. tuberculosis InhA. Tuberculosis. 2017;107:133-136. PMC5679704"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "embcab",
+          "name": "EmbCAB",
+          "gene_locus": "Rv3794 (embC), Rv3795 (embA), Rv3796 (embB)",
+          "function": "Arabinosyltransferases responsible for arabinan polymerization in arabinogalactan and lipoarabinomannan",
+          "significance": "Target of ethambutol; first-line companion drug in standard TB regimens.",
+          "status": "verified",
+          "compounds": [
+            {
+              "name": "Ethambutol (EMB)",
+              "class": "Ethylenediamine derivative",
+              "phase": "Marketed first-line",
+              "mechanism": "Inhibits arabinosyltransferases (EmbA/EmbB/EmbC), blocking arabinan polymerization in the cell wall.",
+              "mutations": [
+                {
+                  "gene": "embB",
+                  "aa_change": "M306V",
+                  "effect": "High-level EMB resistance (most frequent clinical mutation)",
+                  "citation": "WHO Catalogue of mutations in M. tuberculosis complex, 2nd ed., 2023"
+                },
+                {
+                  "gene": "embB",
+                  "aa_change": "M306I",
+                  "effect": "High-level EMB resistance",
+                  "citation": "WHO Catalogue of mutations in M. tuberculosis complex, 2nd ed., 2023"
+                },
+                {
+                  "gene": "embB",
+                  "aa_change": "Q497R",
+                  "effect": "Moderate EMB resistance",
+                  "citation": "WHO Catalogue of mutations in M. tuberculosis complex, 2nd ed., 2023"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "mmpl3",
+          "name": "MmpL3",
+          "gene_locus": "Rv0206c",
+          "function": "Proton-motive-force-driven transporter of trehalose monomycolate (TMM) across the plasma membrane for mycolic acid attachment to the cell wall core",
+          "significance": "One of the most heavily pursued targets in current TB drug discovery — hit by at least 6 structurally distinct chemical series.",
+          "status": "verified",
+          "compounds": [
+            {
+              "name": "SQ109",
+              "class": "Ethylenediamine (EMB analog)",
+              "phase": "Phase II/III clinical trials",
+              "mechanism": "Allosterically blocks TMM translocation through MmpL3, distinct from EMB's mechanism despite structural similarity.",
+              "mutations": [
+                {
+                  "gene": "mmpL3",
+                  "aa_change": "F255L",
+                  "effect": "Resistance (base mutation, potentiates further resistance when combined with second-site mutations)",
+                  "citation": "McNeil MB et al., Multiple mutations in M. tuberculosis MmpL3 increase resistance to MmpL3 inhibitors. mSphere. 2020;5:e00985-20. PMC7565900"
+                },
+                {
+                  "gene": "mmpL3",
+                  "aa_change": "F255L + L567P",
+                  "effect": "5.5-fold increase in SQ109 resistance (compound mutation)",
+                  "citation": "McNeil MB et al., mSphere. 2020;5:e00985-20. PMC7565900"
+                },
+                {
+                  "gene": "mmpL3",
+                  "aa_change": "F255L + V646M",
+                  "effect": "3.3-fold increase in SQ109 resistance (compound mutation)",
+                  "citation": "McNeil MB et al., mSphere. 2020;5:e00985-20. PMC7565900"
+                },
+                {
+                  "gene": "mmpL3",
+                  "aa_change": "G253E",
+                  "effect": "Cross-resistance to SQ109 (from adamantyl urea resistant isolates)",
+                  "citation": "Li W et al., Novel Insights into the Mechanism of Inhibition of MmpL3. Antimicrob Agents Chemother. 2014. PMC4249373"
+                },
+                {
+                  "gene": "mmpL3",
+                  "aa_change": "L567P",
+                  "effect": "Cross-resistance to SQ109",
+                  "citation": "Li W et al., Antimicrob Agents Chemother. 2014. PMC4249373"
+                }
+              ]
+            },
+            {
+              "name": "AU1235",
+              "class": "Adamantyl urea",
+              "phase": "Preclinical",
+              "mechanism": "Binds the MmpL3 substrate-translocation channel; shares a binding region with SQ109.",
+              "mutations": [
+                {
+                  "gene": "mmpL3",
+                  "aa_change": "V285A",
+                  "effect": "No significant change in AU1235 susceptibility despite SQ109 cross-resistance (compound-specific resistance profile)",
+                  "citation": "McNeil MB et al., mSphere. 2020;5:e00985-20. PMC7565900"
+                }
+              ]
+            },
+            {
+              "name": "IDR-0334448 / IDR-0033216",
+              "class": "Spiro-amine series",
+              "phase": "Early discovery",
+              "mechanism": "MmpL3 inhibitors identified via chemical-genetic profiling of resistant mutant isolation.",
+              "mutations": [
+                {
+                  "gene": "mmpL3",
+                  "aa_change": "F255L",
+                  "effect": "12.5 uM MIC shift (base resistance mutation)",
+                  "citation": "McNeil MB et al., mSphere. 2020;5:e00985-20. PMC7565900"
+                },
+                {
+                  "gene": "mmpL3",
+                  "aa_change": "M723T",
+                  "effect": "Contributes to high-level resistance in combination with F255L",
+                  "citation": "McNeil MB et al., mSphere. 2020;5:e00985-20. PMC7565900"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "pks13",
+          "name": "Pks13",
+          "gene_locus": "Rv3800c",
+          "function": "Polyketide synthase catalyzing the terminal Claisen-type condensation step of mycolic acid biosynthesis; thioesterase (TE) domain releases the mature mycolic acid precursor",
+          "significance": "Validated, essential, and clinically unencumbered target — no pre-existing clinical resistance since no marketed drug yet targets it directly.",
+          "status": "verified",
+          "compounds": [
+            {
+              "name": "TAM16",
+              "class": "Benzofuran",
+              "phase": "Preclinical (development halted — hERG cardiotoxicity)",
+              "mechanism": "Inhibits the thioesterase (TE) domain of Pks13, blocking release of the mature mycolic acid precursor.",
+              "mutations": [
+                {
+                  "gene": "pks13",
+                  "aa_change": "D1607N",
+                  "effect": "Resistance to TAM16/benzofuran series (TE domain)",
+                  "citation": "Aggarwal A et al., Development of a Novel Lead that Targets M. tuberculosis Polyketide Synthase 13. Cell. 2017;170(2):249-259. RCSB 5V3Z"
+                },
+                {
+                  "gene": "pks13",
+                  "aa_change": "D1644G",
+                  "effect": "High-level resistance to TAM16",
+                  "citation": "Aggarwal A et al., Cell. 2017;170(2):249-259"
+                },
+                {
+                  "gene": "pks13",
+                  "aa_change": "D1644Y",
+                  "effect": "High-level resistance to TAM16",
+                  "citation": "Aggarwal A et al., Cell. 2017;170(2):249-259"
+                },
+                {
+                  "gene": "pks13",
+                  "aa_change": "V1537A",
+                  "effect": "Resistance to TAM16",
+                  "citation": "bioRxiv 2026 chemical-genetic interaction profiling study (preprint, doi pending formal publication)"
+                }
+              ]
+            },
+            {
+              "name": "Compound TP2",
+              "class": "Thiophene",
+              "phase": "Early discovery",
+              "mechanism": "Targets the N-terminal acyl carrier protein (N-ACP) domain of Pks13, distinct from the TE domain targeted by TAM16.",
+              "mutations": [
+                {
+                  "gene": "pks13",
+                  "aa_change": "F79S",
+                  "effect": "Resistance to TP2 (N-ACP domain mutation, no cross-resistance to TAM16)",
+                  "citation": "Bergeret F et al. cited in: Optimization of TAM16... J Med Chem. PMC8762665"
+                }
+              ]
+            },
+            {
+              "name": "X20404 (DNA-encoded library hit)",
+              "class": "Novel chemotype (DEL-derived)",
+              "phase": "Early discovery",
+              "mechanism": "Binds the Pks13-TE substrate-accommodating channel, near catalytic Ser1533.",
+              "mutations": [
+                {
+                  "gene": "pks13",
+                  "aa_change": "various TE-domain substitutions",
+                  "effect": "Resistance to X20404, characterized structurally by X-ray co-crystallization",
+                  "citation": "Inhibitors of the Thioesterase Activity of M. tuberculosis Pks13 Discovered Using DNA-Encoded Chemical Library Screening. PubMed 38577994; RCSB 8TR4"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "murx_mray",
+          "name": "MurX/MraY",
+          "gene_locus": "Rv2156c (mraY)",
+          "function": "Phospho-MurNAc-pentapeptide translocase — first membrane step of peptidoglycan synthesis",
+          "significance": "Validated essential target in other bacteria (e.g. tunicamycin-class inhibitors); mycobacterial-specific inhibitor/resistance literature is comparatively sparse.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "ubia",
+          "name": "UbiA",
+          "gene_locus": "Rv3806c",
+          "function": "Decaprenylphosphoryl-ribose (DPPR) synthase — produces the decaprenylphosphate carrier lipid for arabinogalactan/lipoarabinomannan precursor synthesis",
+          "significance": "Essential for cell wall precursor supply; distinct from menaquinone-synthesis prenyltransferases despite family name similarity.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "accd6",
+          "name": "AccD6",
+          "gene_locus": "Rv2247",
+          "function": "Beta-subunit of an acyl-CoA carboxylase (ACCase) complex feeding long-chain fatty acid/mycolic acid precursor synthesis",
+          "significance": "Essential component of a validated multi-subunit fatty acid carboxylation complex.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "fas1_fas2",
+          "name": "FAS-I / FAS-II",
+          "gene_locus": "Rv2524c (fas1); FAS-II is a multi-enzyme system incl. InhA, KasA, KasB, MabA",
+          "function": "Fatty acid synthase systems producing the C16-C26 (FAS-I) and very-long-chain meromycolate (FAS-II) precursors of mycolic acids",
+          "significance": "Core biosynthetic machinery for mycolic acids; several FAS-II components (InhA, KasA) are independently validated drug targets, catalogued separately in this database.",
+          "status": "scaffold",
+          "compounds": []
+        }
+      ]
+    },
+    {
+      "id": "beta_lactam",
+      "name": "Beta-Lactam Targets & Resistance Mechanisms",
+      "targets": [
+        {
+          "id": "blac",
+          "name": "BlaC",
+          "gene_locus": "Rv2068c",
+          "function": "Ambler Class A beta-lactamase",
+          "significance": "Primary intrinsic resistance mechanism against most beta-lactams; inhibited by clavulanate, enabling carbapenem/amoxicillin-clavulanate combinations.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "pona",
+          "name": "PonA",
+          "gene_locus": "Rv0050 (ponA1)",
+          "function": "PBP1 (penicillin-binding protein)",
+          "significance": "Major target for beta-lactam binding/inhibition; involved in peptidoglycan transpeptidation.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "pbpb",
+          "name": "PbpB",
+          "gene_locus": "Rv2163c (pbpB/ftsI)",
+          "function": "PBP3 (penicillin-binding protein)",
+          "significance": "Essential for septation; sensitive to specific carbapenems.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "ripa",
+          "name": "RipA",
+          "gene_locus": "Rv2869c",
+          "function": "Peptidoglycan endopeptidase",
+          "significance": "Required for cell division and reported beta-lactam synergy.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "ldtmt",
+          "name": "LdtMt1/Mt2/Mt3",
+          "gene_locus": "Rv0116c (ldtMt2) and paralogs",
+          "function": "L,D-transpeptidases",
+          "significance": "Catalyze 3-3 peptidoglycan cross-links (non-classical, penicillin-insensitive route); key contributor to intrinsic beta-lactam resistance in non-replicating bacilli.",
+          "status": "scaffold",
+          "compounds": []
+        }
+      ]
+    },
+    {
+      "id": "central_metabolism",
+      "name": "Central Metabolism & Bioenergetics",
+      "targets": [
+        {
+          "id": "atp_synthase",
+          "name": "ATP Synthase",
+          "gene_locus": "Rv1305 (atpE) and operon",
+          "function": "F1F0-ATP synthase, subunit c",
+          "significance": "Bedaquiline target; critical energy-generation node, validated by a marketed drug.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "ndh",
+          "name": "NADH-2 (Ndh)",
+          "gene_locus": "Rv1854c (ndh)",
+          "function": "Type II NADH dehydrogenase",
+          "significance": "Respiratory chain entry point; bypasses Type I NADH dehydrogenase, relevant to clofazimine/bedaquiline mechanism synergy.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "cytbc1aa3",
+          "name": "Cyt bc1-aa3",
+          "gene_locus": "Rv2196-Rv2200c (qcrCAB) / ctaCDE",
+          "function": "Cytochrome bc1-aa3 oxidase complex",
+          "significance": "Terminal respiratory oxidase; critical for aerobic survival, target of Q203/telacebec (imidazopyridine class).",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "icl",
+          "name": "ICL (Icl1/Icl2)",
+          "gene_locus": "Rv0467 (icl1), Rv1915 (icl2)",
+          "function": "Isocitrate lyase, glyoxylate shunt",
+          "significance": "Essential for fatty-acid/lipid utilization during persistence and dormancy.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "pepck",
+          "name": "PEPCK (PckA)",
+          "gene_locus": "Rv0211",
+          "function": "Phosphoenolpyruvate carboxykinase, gluconeogenesis",
+          "significance": "Critical for survival on host-derived fatty acids/cholesterol during infection.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "mena_mend",
+          "name": "MenA/MenD",
+          "gene_locus": "Rv0534c (menA), Rv0555 (menD)",
+          "function": "Menaquinone biosynthesis pathway",
+          "significance": "Essential for the electron transport chain; distinct from UbiA/cell-wall prenylation.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "lipb",
+          "name": "LipB",
+          "gene_locus": "Rv1256c",
+          "function": "Lipoyl-protein ligase (cofactor attachment)",
+          "significance": "Attaches lipoic acid cofactor to central metabolic enzyme complexes (e.g. pyruvate/2-oxoglutarate dehydrogenase); reclassified here from 'virulence' since its role is cofactor-attachment to metabolic machinery, not a direct virulence factor.",
+          "status": "scaffold",
+          "compounds": []
+        }
+      ]
+    },
+    {
+      "id": "dna_rna_nucleotide",
+      "name": "DNA/RNA Information Processing & Nucleotide Metabolism",
+      "targets": [
+        {
+          "id": "dna_gyrase",
+          "name": "DNA Gyrase",
+          "gene_locus": "Rv0005 (gyrB), Rv0006 (gyrA)",
+          "function": "DNA supercoiling (type II topoisomerase)",
+          "significance": "Target of fluoroquinolones; extensively characterized WHO-catalogued resistance mutations.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "rna_polymerase",
+          "name": "RNA Polymerase",
+          "gene_locus": "Rv0667 (rpoB)",
+          "function": "Beta-subunit of DNA-dependent RNA polymerase",
+          "significance": "Target of rifamycins; rpoB S450L is the single most common MDR-TB-defining mutation worldwide.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "dnae1",
+          "name": "DnaE1",
+          "gene_locus": "Rv1547",
+          "function": "Catalytic alpha-subunit of DNA polymerase III",
+          "significance": "Catalytic core of chromosomal DNA replication; validated by griselimycin-class inhibitors.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "thya",
+          "name": "ThyA",
+          "gene_locus": "Rv2764c",
+          "function": "Thymidylate synthase",
+          "significance": "Essential for dTMP/DNA precursor supply; para-aminosalicylic acid (PAS) resistance also implicates this pathway via folate metabolism.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "nrdef2",
+          "name": "NrdEF2",
+          "gene_locus": "Rv3051c (nrdE), Rv3052c (nrdF2)",
+          "function": "Class Ib ribonucleotide reductase",
+          "significance": "Essential for maintaining balanced dNTP pools for DNA replication.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "guab2",
+          "name": "GuaB2",
+          "gene_locus": "Rv3411c",
+          "function": "Inosine-5'-monophosphate dehydrogenase (IMPDH)",
+          "significance": "Essential for guanine nucleotide biosynthesis; reclassified here from 'central metabolism' since it directly feeds DNA/RNA precursor pools rather than energy metabolism.",
+          "status": "scaffold",
+          "compounds": []
+        }
+      ]
+    },
+    {
+      "id": "shikimate",
+      "name": "Aromatic Amino Acid & Shikimate Pathway",
+      "targets": [
+        {
+          "id": "trpe",
+          "name": "TrpE",
+          "gene_locus": "Rv1609",
+          "function": "Anthranilate synthase, component I",
+          "significance": "Essential for tryptophan biosynthesis; implicated in intracellular survival during nutrient-limited host conditions.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "trpd",
+          "name": "TrpD",
+          "gene_locus": "Rv2192c",
+          "function": "Anthranilate phosphoribosyltransferase",
+          "significance": "Tryptophan pathway; facilitates indole-glycerol-phosphate conversion.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "arob",
+          "name": "AroB",
+          "gene_locus": "Rv2537c",
+          "function": "3-dehydroquinate synthase",
+          "significance": "Early shikimate pathway step; required for all downstream aromatic amino acid synthesis.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "arog",
+          "name": "AroG",
+          "gene_locus": "Rv2178c",
+          "function": "DAHP synthase",
+          "significance": "First committed step of the shikimate pathway, entry point from central carbon metabolism.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "phea",
+          "name": "PheA",
+          "gene_locus": "Rv3838c",
+          "function": "Prephenate dehydratase",
+          "significance": "Essential for phenylalanine biosynthesis, branching from the shikimate pathway.",
+          "status": "scaffold",
+          "compounds": []
+        }
+      ]
+    },
+    {
+      "id": "amino_acid_nitrogen",
+      "name": "Amino Acid & Nitrogen Metabolism",
+      "targets": [
+        {
+          "id": "dapa_dapb",
+          "name": "DapA / DapB",
+          "gene_locus": "Rv2753c (dapA), Rv2773c (dapB)",
+          "function": "meso-DAP biosynthesis pathway",
+          "significance": "Essential for peptidoglycan cross-linking; meso-DAP is a unique bacterial cell-wall building block absent in humans.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "leua_c_d",
+          "name": "LeuA / LeuC / LeuD",
+          "gene_locus": "Rv3710 (leuA), Rv2987c (leuC/D region)",
+          "function": "Alpha-isopropylmalate synthase complex",
+          "significance": "Essential for leucine biosynthesis; LeuD auxotrophs used as attenuated vaccine strains.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "ilvc_d_e",
+          "name": "IlvC / IlvD / IlvE",
+          "gene_locus": "Rv2967c (ilvC), Rv0189c (ilvD), Rv1704c (ilvE)",
+          "function": "Branched-chain amino acid biosynthesis",
+          "significance": "Essential for valine/isoleucine/leucine production; pathway absent in mammals, favorable selectivity window.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "meta_b_c",
+          "name": "MetA / MetB / MetC",
+          "gene_locus": "Rv3341 (metA) and paralogs",
+          "function": "Methionine biosynthesis pathway",
+          "significance": "Essential for sulfur-containing amino acid synthesis.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "asnb",
+          "name": "AsnB",
+          "gene_locus": "Rv2201",
+          "function": "Asparagine synthetase (glutamine-hydrolyzing)",
+          "significance": "Critical for nitrogen metabolism and protein synthesis under nitrogen-limited host conditions.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "gltd",
+          "name": "GltD",
+          "gene_locus": "Rv3859c",
+          "function": "Glutamate synthase, small subunit",
+          "significance": "Central nitrogen assimilation node linking carbon and nitrogen metabolism.",
+          "status": "scaffold",
+          "compounds": []
+        }
+      ]
+    },
+    {
+      "id": "cofactor_vitamin",
+      "name": "Cofactor & Vitamin Biosynthesis",
+      "targets": [
+        {
+          "id": "pank",
+          "name": "PanK",
+          "gene_locus": "Rv1092c",
+          "function": "Pantothenate kinase",
+          "significance": "First committed step of coenzyme A biosynthesis; reclassified here from 'amino acid biosynthesis' since CoA is a cofactor, not an amino acid product.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "ribba",
+          "name": "RibBA",
+          "gene_locus": "Rv1415",
+          "function": "Riboflavin synthase (bifunctional DHBP synthase/GTP cyclohydrolase II)",
+          "significance": "Essential for vitamin B2 (riboflavin) biosynthesis, precursor to FAD/FMN cofactors.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "dhps",
+          "name": "DHPS",
+          "gene_locus": "Rv3608c (folP1)",
+          "function": "Dihydropteroate synthase",
+          "significance": "Folate biosynthesis pathway enzyme; target of sulfonamides/dapsone-class agents.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "bioa_biod",
+          "name": "BioA / BioD",
+          "gene_locus": "Rv1568 (bioA), Rv1570 (bioD)",
+          "function": "Biotin biosynthesis pathway",
+          "significance": "Essential for biotin (vitamin B7) synthesis, an obligate cofactor for carboxylation reactions (e.g. ACCase, relevant to AccD6/mycolic acid synthesis).",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "lipb_cofactor",
+          "name": "LipB",
+          "gene_locus": "Rv1256c",
+          "function": "Lipoyl-protein ligase",
+          "significance": "See also Central Metabolism category — listed here as well since lipoic acid is formally a cofactor-biosynthesis product; cross-referenced rather than duplicated in data curation.",
+          "status": "scaffold",
+          "compounds": []
+        }
+      ]
+    },
+    {
+      "id": "virulence",
+      "name": "Virulence & Host Adaptation",
+      "targets": [
+        {
+          "id": "mbti_mbta",
+          "name": "MbtI / MbtA",
+          "gene_locus": "Rv2386c (mbtI), Rv2384 (mbtA)",
+          "function": "Mycobactin (siderophore) biosynthesis",
+          "significance": "Essential for iron acquisition during host infection, a well-validated virulence-associated target.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "cyp121",
+          "name": "CYP121",
+          "gene_locus": "Rv2276",
+          "function": "Cytochrome P450 monooxygenase",
+          "significance": "Essential for cyclodityrosine (mycocyclosin) biosynthesis; validated by genetic essentiality studies.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "phop",
+          "name": "PhoP",
+          "gene_locus": "Rv0757",
+          "function": "Response regulator, PhoP-PhoR two-component system",
+          "significance": "Key regulator of virulence lipid biosynthesis (PDIM, SL-1) and ESX-1 secretion; validated attenuation target for live vaccine candidates.",
+          "status": "scaffold",
+          "compounds": []
+        },
+        {
+          "id": "rpfa_e",
+          "name": "RpfA-E",
+          "gene_locus": "Rv0867c (rpfA) and four paralogs",
+          "function": "Resuscitation-promoting factors (peptidoglycan hydrolases)",
+          "significance": "Crucial for reactivation from dormancy/persistence; relevant to relapse and latent TB reactivation biology.",
+          "status": "scaffold",
+          "compounds": []
+        }
+      ]
+    }
+  ]
+}
