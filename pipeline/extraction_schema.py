@@ -25,7 +25,7 @@ Curator workflow:
   3. Set `verification_status` to "verified" or "rejected" per row, with
      `curator_notes` explaining any judgment call
   4. Run merge_into_db.py -> only "verified" rows get merged into
-     mycomut_targets_v1.json
+     mycodiscovery_targets_v1.json
 """
 import csv
 from dataclasses import dataclass, fields
@@ -88,18 +88,19 @@ def init_compound_csv(path: Path, candidates: List[dict]):
     for c in candidates:
         row = {fn: "" for fn in fieldnames}
         row.update(c)
-        row["verification_status"] = row.get("verification_status", "pending")
+        row["verification_status"] = row.get("verification_status") or "pending"
         rows.append(row)
     _write_csv(path, rows, fieldnames)
 
 
 def init_mutation_csv(path: Path, candidates: List[dict]):
+    """Same idea as init_compound_csv, for the mutation-query candidates."""
     fieldnames = [f.name for f in fields(MutationCandidate)]
     rows = []
     for c in candidates:
         row = {fn: "" for fn in fieldnames}
         row.update(c)
-        row["verification_status"] = row.get("verification_status", "pending")
+        row["verification_status"] = row.get("verification_status") or "pending"
         rows.append(row)
     _write_csv(path, rows, fieldnames)
 
