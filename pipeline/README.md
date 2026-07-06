@@ -1,8 +1,14 @@
-# MycoMUT Systematic Search Pipeline
+# MycoDiscovery Systematic Search Pipeline
 
 A reproducible, PRISMA-style literature search pipeline for populating the
-target-first MycoMUT Target Explorer database — built so the methodology
+target-first MycoDiscovery Target Explorer database — built so the methodology
 can be described and cited in a publication, not just "we searched PubMed."
+
+**v2.0.0:** one combined, multi-species query per target (*M. tuberculosis*,
+*M. abscessus*, *M. avium*, *M. kansasii*, *M. smegmatis*), writing to a
+single unified `candidates.csv` — replaced the earlier two-query/two-CSV
+(compound + mutation) design, which had a cross-query deduplication bug
+(see `protocol.py`'s module docstring for details).
 
 ## Why this exists
 
@@ -16,9 +22,9 @@ suitable for a methods section.
 ## Pipeline stages
 
 ```
-protocol.py          Pre-specified search queries + inclusion/exclusion
-                      criteria (defined BEFORE screening — standard
-                      systematic-review practice)
+protocol.py          Pre-specified, multi-species search query per target +
+                      inclusion/exclusion criteria (defined BEFORE
+                      screening — standard systematic-review practice)
         |
         v
 pubmed_client.py      Runs every query against NCBI PubMed (E-utilities),
@@ -26,7 +32,7 @@ pubmed_client.py      Runs every query against NCBI PubMed (E-utilities),
         |
         v
 run_search.py         Orchestrates the full search, deduplicates hits,
-                      writes curator-ready CSV templates + PRISMA counts
+                      writes ONE curator-ready CSV (candidates.csv) + PRISMA counts
         |
         v
    [ HUMAN CURATION — you review each CSV row against the criteria
@@ -70,8 +76,7 @@ python3 run_search.py
 This produces:
 - `data/search_log.jsonl` — every query, timestamp, and result count (your PRISMA "Identification" data)
 - `data/candidates_raw.jsonl` — full raw records (title/abstract/journal/year/DOI) for every hit
-- `data/compounds_candidates.csv` — one row per candidate compound, ready for you to fill in and verify
-- `data/mutations_candidates.csv` — same, for resistance mutations
+- `data/candidates.csv` — one row per candidate paper per target, ready for you to fill in and verify
 - `data/prisma_summary.json` — identification/deduplication counts
 
 ## Curating
@@ -87,10 +92,9 @@ Open both CSVs. For each row:
 
 ```bash
 python3 merge_into_db.py \
-    --json mycomut_targets_v1.json \
-    --compounds data/compounds_candidates.csv \
-    --mutations data/mutations_candidates.csv \
-    --out mycomut_targets_v2.json
+    --json mycodiscovery_targets_v1.json \
+    --candidates data/candidates.csv \
+    --out mycodiscovery_targets_v2.json
 ```
 
 Rerun this any time you've curated more rows — it's idempotent and rebuilds
@@ -104,7 +108,7 @@ each target's compound/mutation list from the current CSV state.
 
 ## For your methods section
 
-You now have, for every published fact in MycoMUT:
+You now have, for every published fact in MycoDiscovery:
 - The exact search string that found it (`source_query`)
 - The protocol version that generated that string (`protocol_version`)
 - PMID and DOI
