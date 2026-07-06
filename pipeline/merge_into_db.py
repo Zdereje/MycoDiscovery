@@ -1,71 +1,70 @@
 """
 merge_into_db.py
 Promotes VERIFIED rows only (verification_status == "verified") from the
-curated CSVs into mycomut_targets_v1.json.
+unified candidates.csv into mycodiscovery_targets_*.json.
 
-This replaces the hardcoded-Python-dict approach from build_target_centric.py
-with a provenance-preserving pipeline: every compound/mutation in the
-published JSON can be traced back to (a) the exact PubMed query that
-surfaced it, (b) the PMID/DOI, (c) who curated it, and (d) when.
+Schema note: a single compound can legitimately appear in multiple papers
+(different assay conditions, different MIC values, different mutations
+reported). Rather than flattening that into one row and losing information,
+each compound gets a `records` list — one entry per paper — so nothing about
+"which paper reported which MIC/mutation" gets silently merged away.
 
-Idempotent: rerunning with an updated CSV re-derives the compounds/mutations
-arrays per target from scratch (does not append duplicates), so this is safe
-to run repeatedly as curation continues over time.
+Idempotent: rerunning with an updated CSV re-derives each target's compound
+list from scratch, so this is safe to run repeatedly as curation continues.
 
 Usage:
     python3 merge_into_db.py \\
-        --json mycomut_targets_v1.json \\
-        --compounds data/compounds_candidates.csv \\
-        --mutations data/mutations_candidates.csv \\
-        --out mycomut_targets_v2.json
+        --json mycodiscovery_targets_v1.json \\
+        --candidates data/candidates.csv \\
+        --out mycodiscovery_targets_v2.json
 """
 import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
 
-from extraction_schema import read_verified, CompoundCandidate, MutationCandidate
+from extraction_schema import read_verified
 
 
-def build_target_data(compound_rows, mutation_rows):
-    """Returns {target_id: {compound_name: {..compound fields.., mutations: [...]}}}"""
+def build_target_data(rows):
+    """Returns {target_id: {compound_name: {..fields.., records: [...]}}}"""
     targets = defaultdict(dict)
 
-    for row in compound_rows:
+    for row in rows:
         tid = row["target_id"]
-        targets[tid][row["compound_name"]] = {
-            "name": row["compound_name"],
-            "class": row["compound_class"],
-            "phase": row["phase_or_status"],
-            "mechanism": row["mechanism"],
-            "mutations": [],
-            "provenance": {
-                "pmid": row["pmid"], "doi": row["doi"],
-                "source_query": row["source_query"],
-                "protocol_version": row["protocol_version"],
-                "curator": row["curator"], "curation_date": row["curation_date"],
-            },
-        }
-
-    for row in mutation_rows:
-        tid = row["target_id"]
-        cname = row["compound_name"]
-        if tid not in targets or cname not in targets[tid]:
-            # Mutation references a compound not (yet) verified in the
-            # compound CSV — skip but this should be investigated, not
-            # silently dropped in a real run.
-            print(f"WARNING: mutation row references unverified/unknown "
-                  f"compound '{cname}' for target '{tid}' — skipping. "
-                  f"PMID:{row.get('pmid')}")
+        cname = row["compound_name"].strip()
+        if not cname:
+            print(f"WARNING: verified row for target '{tid}' (PMID:{row.get('pmid')}) "
+                  f"has no compound_name — skipping. Fill this in during curation.")
             continue
-        targets[tid][cname]["mutations"].append({
-            "gene": row["gene"], "aa_change": row["aa_change"], "effect": row["effect"],
-            "citation": row["citation_text"],
+
+        if cname not in targets[tid]:
+            targets[tid][cname] = {
+                "name": cname,
+                "class": row.get("compound_class", ""),
+                "phase": row.get("phase_or_status", ""),
+                "clinicaltrials_id": row.get("ClinicalTrials.gov ID", ""),
+                "records": [],
+            }
+
+        targets[tid][cname]["records"].append({
+            "bacteria": row.get("Bacteria", ""),
+            "assay_type": row.get("Type", ""),
+            "method": row.get("Method", ""),
+            "mic_ug_ml": row.get("MIC [ug/mL]", ""),
+            "mechanism": row.get("mechanism", ""),
+            "reference_genome": row.get("Reference genome", ""),
+            "gene": row.get("Gene", ""),
+            "function": row.get("Function", ""),
+            "mutations": row.get("Mutations", ""),
+            "citation": row.get("citation_text", ""),
             "provenance": {
-                "pmid": row["pmid"], "doi": row["doi"],
-                "source_query": row["source_query"],
-                "protocol_version": row["protocol_version"],
-                "curator": row["curator"], "curation_date": row["curation_date"],
+                "pmid": row.get("pmid", ""),
+                "doi": row.get("doi", ""),
+                "source_query": row.get("source_query", ""),
+                "protocol_version": row.get("protocol_version", ""),
+                "curator": row.get("curator", ""),
+                "curation_date": row.get("curation_date", ""),
             },
         })
 
@@ -86,19 +85,16 @@ def merge(db: dict, target_data: dict) -> dict:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", required=True, help="Existing target-centric JSON to merge into")
-    ap.add_argument("--compounds", required=True, help="Curated compounds CSV")
-    ap.add_argument("--mutations", required=True, help="Curated mutations CSV")
+    ap.add_argument("--candidates", required=True, help="Curated unified candidates CSV")
     ap.add_argument("--out", required=True, help="Output path for merged JSON")
     args = ap.parse_args()
 
     db = json.loads(Path(args.json).read_text())
 
-    compound_rows = read_verified(Path(args.compounds), CompoundCandidate)
-    mutation_rows = read_verified(Path(args.mutations), MutationCandidate)
-    print(f"Verified compound rows: {len(compound_rows)}")
-    print(f"Verified mutation rows: {len(mutation_rows)}")
+    rows = read_verified(Path(args.candidates))
+    print(f"Verified rows: {len(rows)}")
 
-    target_data = build_target_data(compound_rows, mutation_rows)
+    target_data = build_target_data(rows)
     merged = merge(db, target_data)
 
     total_targets = sum(len(c["targets"]) for c in merged["categories"])
@@ -108,8 +104,8 @@ def main():
     merged["metadata"]["total_compounds_catalogued"] = sum(
         len(t.get("compounds", [])) for c in merged["categories"] for t in c["targets"]
     )
-    merged["metadata"]["total_mutations_catalogued"] = sum(
-        len(cm.get("mutations", [])) for c in merged["categories"] for t in c["targets"]
+    merged["metadata"]["total_records_catalogued"] = sum(
+        len(cm.get("records", [])) for c in merged["categories"] for t in c["targets"]
         for cm in t.get("compounds", [])
     )
 
