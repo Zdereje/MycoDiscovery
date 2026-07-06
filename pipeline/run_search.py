@@ -1,8 +1,8 @@
 """
 run_search.py
-Orchestrates the full systematic search: runs every query in protocol.py
-against PubMed, deduplicates, logs everything, and writes curator-ready
-CSV templates for the manual verification step.
+Orchestrates the full systematic search: runs ONE combined query per target
+(protocol.py v2.0.0+) against PubMed, deduplicates, logs everything, and
+writes ONE curator-ready CSV template for the manual verification step.
 
 This does NOT decide what's true. It surfaces candidates. A human curator
 reviews every row before anything is trusted (see extraction_schema.py).
@@ -15,10 +15,8 @@ Usage:
 Outputs:
     data/cache/                        raw esearch/efetch responses (cached)
     data/search_log.jsonl              every query run, with timestamp + count
-    data/candidates_raw.jsonl          all fetched PubMed records, tagged by
-                                        target + query type
-    data/compounds_candidates.csv      curator template for compound review
-    data/mutations_candidates.csv      curator template for mutation review
+    data/candidates_raw.jsonl          all fetched PubMed records, tagged by target
+    data/candidates.csv                single curator template (see extraction_schema.py)
     data/prisma_summary.json           identification-stage PRISMA counts
 """
 import json
@@ -28,7 +26,7 @@ from pathlib import Path
 from protocol import TARGETS, PROTOCOL_VERSION, all_queries
 from pubmed_client import PubMedClient
 from prisma import PrismaTracker
-from extraction_schema import init_compound_csv, init_mutation_csv
+from extraction_schema import init_candidate_csv
 
 DATA_DIR = Path("data")
 
@@ -47,48 +45,40 @@ def main():
 
     per_target_counts = {}
     all_records = []
-    seen_pmids = {"compound": set(), "mutation": set()}
+    seen_pmids = set()   # one query type now, so a single set is correct again
     dup_count = 0
+    candidates = []
 
-    compound_candidates = []
-    mutation_candidates = []
-
-    for target, qtype, query in all_queries():
+    for target, query in all_queries():
         pmids = client.search(query, protocol_version=PROTOCOL_VERSION)
-        per_target_counts[f"{target.id}:{qtype}"] = len(pmids)
+        per_target_counts[target.id] = len(pmids)
 
-        # Deduplicate ONLY within the same query type (compound vs mutation),
-        # never across types — a paper can legitimately be both a compound
-        # hit and a mutation hit for the same target, and both matter.
-        seen_for_type = seen_pmids[qtype]
-        new_pmids = [p for p in pmids if p not in seen_for_type]
+        new_pmids = [p for p in pmids if p not in seen_pmids]
         dup_count += len(pmids) - len(new_pmids)
-        seen_for_type.update(new_pmids)
+        seen_pmids.update(new_pmids)
 
         records = client.fetch_summaries(new_pmids, source_query=query, protocol_version=PROTOCOL_VERSION)
         for rec in records:
-            row = {
-                "target_id": target.id, "target_name": target.name,
-                "pmid": rec.pmid, "doi": rec.doi or "",
+            candidates.append({
+                "target_id": target.id,
+                "target_name": target.name,
+                "pmid": rec.pmid,
+                "doi": rec.doi or "",
                 "citation_text": f"{rec.authors}. {rec.title} {rec.journal}. {rec.year}. PMID:{rec.pmid}",
-                "source_query": query, "protocol_version": PROTOCOL_VERSION,
-                "curator": "", "curation_date": "",
-            }
-            if qtype == "compound":
-                compound_candidates.append({
-                    **row, "compound_name": "", "compound_class": "",
-                    "phase_or_status": "", "mechanism": "",
-                })
-            else:
-                mutation_candidates.append({
-                    **row, "compound_name": "", "gene": target.gene_name,
-                    "aa_change": "", "effect": "",
-                })
-            all_records.append({"target_id": target.id, "query_type": qtype, **rec.__dict__})
+                "source_query": query,
+                "protocol_version": PROTOCOL_VERSION,
+                "curator": "",
+                # compound_name, compound_class, Bacteria, Type, Method,
+                # "MIC [ug/mL]", phase_or_status, "ClinicalTrials.gov ID",
+                # mechanism, "Reference genome", Gene, Function, Mutations
+                # are intentionally left blank — the curator fills these in
+                # after reading the paper. init_candidate_csv defaults
+                # verification_status to "pending".
+            })
+            all_records.append({"target_id": target.id, **rec.__dict__})
 
     tracker.record_identification(per_target_counts)
-    total_unique = len(seen_pmids["compound"]) + len(seen_pmids["mutation"])
-    tracker.record_deduplication(total_unique, dup_count)
+    tracker.record_deduplication(len(seen_pmids), dup_count)
     tracker.export_summary()
     tracker.print_flow()
 
@@ -97,12 +87,10 @@ def main():
         for r in all_records:
             f.write(json.dumps(r) + "\n")
 
-    init_compound_csv(DATA_DIR / "compounds_candidates.csv", compound_candidates)
-    init_mutation_csv(DATA_DIR / "mutations_candidates.csv", mutation_candidates)
+    init_candidate_csv(DATA_DIR / "candidates.csv", candidates)
 
-    print(f"\nWrote {len(compound_candidates)} compound candidates -> data/compounds_candidates.csv")
-    print(f"Wrote {len(mutation_candidates)} mutation candidates -> data/mutations_candidates.csv")
-    print("\nNext step: open both CSVs, review each row against the inclusion/")
+    print(f"\nWrote {len(candidates)} candidates -> data/candidates.csv")
+    print("\nNext step: open the CSV, review each row against the inclusion/")
     print("exclusion criteria in protocol.py, fill in the extracted fields, and")
     print("set verification_status to 'verified' or 'rejected'. Then run")
     print("merge_into_db.py to promote verified rows into the published JSON.")
