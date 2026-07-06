@@ -50,6 +50,32 @@ SPECIES = [
 # ── RESISTANCE/VARIATION TERMS ───────────────────────────────────────────
 RESISTANCE_TERMS = ["resistance", "resistant", "mutation", "mutants", "polymorphism"]
 
+# ── BROAD, GENE-UNRESTRICTED QUERY ───────────────────────────────────────
+# The per-target queries below are restricted to a specific gene symbol/
+# locus — they can only ever find papers about genes already on your
+# target list. This query has NO gene restriction, so it also catches
+# resistance-conferring mutations in genes that aren't in TARGETS at all
+# (novel/uncatalogued resistance mechanisms). Because it's this broad, it
+# WILL match a very large number of papers — see run_search.py for how
+# results are deduplicated against everything the per-target searches
+# already found, so you only review the genuinely NEW ones here, not
+# every resistance paper ever published on these species.
+#
+# Narrower resistance term list than the per-target queries (drops
+# "polymorphism" — specific to this broad query only, RESISTANCE_TERMS
+# above is unchanged for per-target use). Both species and resistance
+# terms are now restricted to [Title/Abstract], same as the gene terms.
+BROAD_RESISTANCE_TERMS = ["resistance", "resistant", "mutation", "mutants"]
+
+
+def build_broad_query(species: List[str], resistance_terms: List[str]) -> str:
+    species_clause = " OR ".join(f'"{s}"[Title/Abstract]' for s in species)
+    resistance_clause = " OR ".join(f'"{r}"[Title/Abstract]' for r in resistance_terms)
+    return f'(({species_clause}) AND ({resistance_clause}))'
+
+
+BROAD_QUERY = build_broad_query(SPECIES, BROAD_RESISTANCE_TERMS)
+
 
 def build_query(gene_terms: List[str], species: List[str], resistance_terms: List[str]) -> str:
     """Gene/locus terms restricted to Title/Abstract (keeps precision).
@@ -103,7 +129,12 @@ class Target:
 TARGETS: List[Target] = [
     # Cell Wall & Envelope Biosynthesis
     Target("dpre1", "DprE1/E2", "dprE1", "Rv3790", "cell_wall",
-           extra_loci=["MSMEG_6382", "mab_0192c"]),  # verified in DprE1 literature
+           # mab_0192c is the M. abscessus tag widely cited in BTZ/DprE1
+           # literature. M. smegmatis (MSMEG_6382) and M. avium (MAV_0232)
+           # tags were dropped per your confirmation — keeping the pattern
+           # to gene name + Rv locus + confirmed mab_ tag only, consistent
+           # across all targets.
+           extra_loci=["mab_0192c"]),
     Target("inha", "InhA", "inhA", "Rv1484", "cell_wall"),
     Target("embcab", "EmbCAB", "embB", "Rv3795", "cell_wall"),
     Target("pks13", "Pks13", "pks13", "Rv3800c", "cell_wall"),
@@ -167,6 +198,7 @@ def all_queries():
 
 if __name__ == "__main__":
     print(f"MycoDiscovery search protocol v{PROTOCOL_VERSION} ({PROTOCOL_DATE})")
-    print(f"Targets: {len(TARGETS)} | Queries: {len(TARGETS)} (one per target)")
-    for t, q in all_queries():
-        print(f"\n[{t.id}]\n  {q}")
+    print(f"Targets: {len(TARGETS)} | Per-target queries: {len(TARGETS)}")
+    print(f"\nBroad (gene-unrestricted) query:\n  {BROAD_QUERY}")
+    t = TARGETS[0]
+    print(f"\nSample per-target query [{t.id}]:\n  {t.query()}")
