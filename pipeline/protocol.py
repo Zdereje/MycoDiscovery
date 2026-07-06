@@ -1,61 +1,72 @@
 """
 protocol.py
-The PRE-SPECIFIED search protocol for the MycoMUT Target Explorer systematic
-literature search.
+The PRE-SPECIFIED search protocol for the MycoDiscovery Target Explorer
+systematic literature search.
 
-Why this file exists (for the methods section of a future publication):
-Systematic reviews require a documented, reproducible search strategy defined
-BEFORE screening begins — not queries improvised ad hoc while reading results.
-This file is that pre-specification. Every query MycoMUT's search pipeline runs
-is generated from this file, so the exact search strings are always fully
-recoverable and auditable, and any reviewer/collaborator can rerun the same
-protocol and get the same query set.
+v2.0.0 CHANGE: replaced the old two-query-per-target design (a separate
+"compound" query and a "mutation" query) with a SINGLE combined query per
+target, covering multiple Mycobacterium species and, where known, the
+gene's locus tag across species (Rv for M. tuberculosis, MSMEG_ for
+M. smegmatis, mab_ for M. abscessus, etc.).
 
-Versioning: bump PROTOCOL_VERSION whenever query templates or the target list
-change, and keep old versions in git history — a systematic review methods
-section should state which protocol version produced which results.
+Why one query instead of two: a single paper very often reports both a
+compound AND its resistance mutation (e.g. "BTZ043 ... resistant mutants
+carried C387S"). The old two-query design silently miscounted these
+overlap papers depending on which query ran first. One combined query per
+target avoids that class of bug entirely, at the cost of no longer being
+able to report separate "compound-only" vs "mutation-only" PRISMA counts —
+screening now sorts that out per-paper instead of per-query.
 
-Databases: this protocol targets PubMed (via NCBI E-utilities) only, for v1.
-PMC full-text and bioRxiv/medRxiv preprint search are natural extensions —
-see the `sources` field per target if/when you add them.
+IMPORTANT LIMITATION — read before trusting the multi-species locus tags:
+Accurate cross-species ortholog locus IDs (MSMEG_/mab_/etc.) are only
+populated below for DprE1, since that's well-documented in the literature
+I could verify. For every other target, extra_loci is intentionally left
+empty rather than guessed — fabricating a locus tag risks silently
+injecting a wrong gene ID into a systematic search. For those targets,
+the query still finds cross-species hits via the gene SYMBOL text match
+plus the species name list; it just won't additionally match on a
+species-specific locus number. If you want DprE1-level precision for other
+targets, look up the correct ortholog locus tags (NCBI Gene, Mycobrowser,
+or UniProt cross-references are good sources) and add them to extra_loci.
+
+Versioning: bump PROTOCOL_VERSION whenever query templates or the target
+list change, and keep old versions in git history.
 """
 from dataclasses import dataclass, field
 from typing import List
 
-PROTOCOL_VERSION = "1.0.0"
+PROTOCOL_VERSION = "2.0.0"
 PROTOCOL_DATE = "2026-07-05"
 
-# ── QUERY TEMPLATES ──────────────────────────────────────────────────────
-# Two independent query classes per target, run separately (not OR-combined)
-# so compound-discovery hits and resistance-mutation hits can be screened
-# and reported as distinct PRISMA streams, matching how the target-centric
-# schema separates "compounds" from "mutations".
+# ── SPECIES COVERED ──────────────────────────────────────────────────────
+SPECIES = [
+    "Mycobacterium tuberculosis",
+    "Mycobacterium abscessus",
+    "Mycobacterium avium",
+    "Mycobacterium kansasii",
+    "Mycobacterium smegmatis",
+]
 
-COMPOUND_QUERY_TEMPLATE = (
-    '("{gene_name}"[Title/Abstract] OR "{gene_locus}"[Title/Abstract]) '
-    'AND ("Mycobacterium tuberculosis"[Title/Abstract] OR "M. tuberculosis"[Title/Abstract]) '
-    'AND ("inhibitor"[Title/Abstract] OR "inhibitors"[Title/Abstract] '
-    'OR "inhibition"[Title/Abstract] OR "lead compound"[Title/Abstract])'
-)
+# ── RESISTANCE/VARIATION TERMS ───────────────────────────────────────────
+RESISTANCE_TERMS = ["resistance", "resistant", "mutation", "mutants", "polymorphism"]
 
-MUTATION_QUERY_TEMPLATE = (
-    '("{gene_name}"[Title/Abstract] OR "{gene_locus}"[Title/Abstract]) '
-    'AND ("Mycobacterium tuberculosis"[Title/Abstract] OR "M. tuberculosis"[Title/Abstract]) '
-    'AND ("resistance"[Title/Abstract] OR "resistant"[Title/Abstract] '
-    'OR "mutation"[Title/Abstract] OR "mutant"[Title/Abstract] OR "SNP"[Title/Abstract])'
-)
+
+def build_query(gene_terms: List[str], species: List[str], resistance_terms: List[str]) -> str:
+    """Gene/locus terms restricted to Title/Abstract (keeps precision).
+    Species and resistance terms left unrestricted (broadens recall)."""
+    gene_clause = " OR ".join(f'"{g}"[Title/Abstract]' for g in gene_terms)
+    species_clause = " OR ".join(f'"{s}"' for s in species)
+    resistance_clause = " OR ".join(f'"{r}"' for r in resistance_terms)
+    return f'({gene_clause}) AND ({species_clause}) AND ({resistance_clause})'
+
 
 # ── PRE-SPECIFIED INCLUSION / EXCLUSION CRITERIA ────────────────────────
-# State these BEFORE screening (standard PRISMA practice) so screening
-# decisions are auditable against a fixed rule, not made up per-paper.
-
 INCLUSION_CRITERIA = [
     "Peer-reviewed primary research article, or a preprint from bioRxiv/medRxiv "
     "clearly superseded by or awaiting peer review.",
     "Reports at least one named compound (with a stated or citable chemotype/class) "
     "AND/OR at least one specific resistance mutation (gene + amino-acid or "
-    "nucleotide change) tied to Mycobacterium tuberculosis complex or a named "
-    "nontuberculous mycobacterial species.",
+    "nucleotide change) tied to a Mycobacterium species covered by this protocol.",
     "Mutation-effect claims must be tied to an experimental readout (MIC shift, "
     "IC50 shift, growth/kill curve, or equivalent) — not purely computational "
     "prediction, unless no experimental data exists yet for that target (in "
@@ -69,8 +80,8 @@ EXCLUSION_CRITERIA = [
     "In silico/docking-only studies proposing novel compounds with no reported "
     "wet-lab MIC or resistance data (flag separately as 'in-silico candidate', "
     "do not merge into the verified compound/mutation tables).",
-    "Studies in species outside the Mycobacterium genus, unless the paper is "
-    "explicitly cross-referenced from an included Mycobacterium study.",
+    "Studies in species outside the 5 covered by this protocol, unless the paper "
+    "is explicitly cross-referenced from an included study.",
 ]
 
 
@@ -78,27 +89,21 @@ EXCLUSION_CRITERIA = [
 class Target:
     id: str
     name: str
-    gene_name: str          # e.g. "dprE1" — used in query construction
-    gene_locus: str         # e.g. "Rv3790"
+    gene_name: str               # gene symbol, e.g. "dprE1"
+    gene_locus: str               # M. tuberculosis Rv locus, e.g. "Rv3790"
     category_id: str
+    extra_loci: List[str] = field(default_factory=list)  # other species' locus tags, where confidently known
 
-    def compound_query(self) -> str:
-        return COMPOUND_QUERY_TEMPLATE.format(gene_name=self.gene_name, gene_locus=self.gene_locus)
-
-    def mutation_query(self) -> str:
-        return MUTATION_QUERY_TEMPLATE.format(gene_name=self.gene_name, gene_locus=self.gene_locus)
+    def query(self) -> str:
+        gene_terms = [self.gene_name, self.gene_locus] + list(self.extra_loci)
+        return build_query(gene_terms, SPECIES, RESISTANCE_TERMS)
 
 
-# ── FULL TARGET LIST (mirrors mycomut_targets_v1.json category/target IDs) ──
-# gene_name is the lowercase gene symbol used in PubMed title/abstract text;
-# for multi-gene target groups (e.g. "EmbCAB"), the dominant/most-searched
-# individual gene symbol is used as the primary query term, with the group
-# name added as a secondary OR term where useful — edit per curator judgment
-# as you review actual query yield.
-
+# ── FULL TARGET LIST (mirrors mycodiscovery_targets_v1.json category/target IDs) ──
 TARGETS: List[Target] = [
     # Cell Wall & Envelope Biosynthesis
-    Target("dpre1", "DprE1/E2", "dprE1", "Rv3790", "cell_wall"),
+    Target("dpre1", "DprE1/E2", "dprE1", "Rv3790", "cell_wall",
+           extra_loci=["MSMEG_6382", "mab_0192c"]),  # verified in DprE1 literature
     Target("inha", "InhA", "inhA", "Rv1484", "cell_wall"),
     Target("embcab", "EmbCAB", "embB", "Rv3795", "cell_wall"),
     Target("pks13", "Pks13", "pks13", "Rv3800c", "cell_wall"),
@@ -155,15 +160,13 @@ TARGETS: List[Target] = [
 
 
 def all_queries():
-    """Yields (target, query_type, query_string) for every target — the full,
-    exact set of queries this protocol version specifies."""
+    """Yields (target, query_string) — one combined query per target."""
     for t in TARGETS:
-        yield t, "compound", t.compound_query()
-        yield t, "mutation", t.mutation_query()
+        yield t, t.query()
 
 
 if __name__ == "__main__":
-    print(f"MycoMUT search protocol v{PROTOCOL_VERSION} ({PROTOCOL_DATE})")
-    print(f"Targets: {len(TARGETS)} | Queries: {len(TARGETS) * 2}")
-    for t, qtype, q in all_queries():
-        print(f"[{t.id}] ({qtype}) {q}")
+    print(f"MycoDiscovery search protocol v{PROTOCOL_VERSION} ({PROTOCOL_DATE})")
+    print(f"Targets: {len(TARGETS)} | Queries: {len(TARGETS)} (one per target)")
+    for t, q in all_queries():
+        print(f"\n[{t.id}]\n  {q}")
