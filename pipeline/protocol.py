@@ -67,11 +67,29 @@ RESISTANCE_TERMS = ["resistance", "resistant", "mutation", "mutants", "polymorph
 # terms are now restricted to [Title/Abstract], same as the gene terms.
 BROAD_RESISTANCE_TERMS = ["resistance", "resistant", "mutation", "mutants"]
 
+# ── EXCLUDE NON-PRIMARY PUBLICATION TYPES ───────────────────────────────
+# NLM manually tags every indexed PubMed record with a Publication Type
+# (Review, Journal Article, Meta-Analysis, Comment, Editorial, Letter,
+# etc.) — this is curated metadata, not a guess from the title, so
+# excluding on it is far more reliable than keyword-matching title text
+# for "review" (which misses reviews that don't use that word, and can
+# misfire on primary papers that happen to use it descriptively).
+# NOT-ing these out removes them before they ever reach your CSV, without
+# touching the actual gene/species/resistance search terms — so it
+# shouldn't cost you recall on genuine primary research.
+EXCLUDED_PUBLICATION_TYPES = [
+    "Review", "Systematic Review", "Meta-Analysis", "Comment", "Editorial", "Letter",
+]
+
+
+def _exclusion_clause() -> str:
+    return " OR ".join(f'"{pt}"[Publication Type]' for pt in EXCLUDED_PUBLICATION_TYPES)
+
 
 def build_broad_query(species: List[str], resistance_terms: List[str]) -> str:
     species_clause = " OR ".join(f'"{s}"[Title/Abstract]' for s in species)
     resistance_clause = " OR ".join(f'"{r}"[Title/Abstract]' for r in resistance_terms)
-    return f'(({species_clause}) AND ({resistance_clause}))'
+    return f'(({species_clause}) AND ({resistance_clause})) NOT ({_exclusion_clause()})'
 
 
 BROAD_QUERY = build_broad_query(SPECIES, BROAD_RESISTANCE_TERMS)
@@ -79,11 +97,13 @@ BROAD_QUERY = build_broad_query(SPECIES, BROAD_RESISTANCE_TERMS)
 
 def build_query(gene_terms: List[str], species: List[str], resistance_terms: List[str]) -> str:
     """Gene/locus terms restricted to Title/Abstract (keeps precision).
-    Species and resistance terms left unrestricted (broadens recall)."""
+    Species and resistance terms left unrestricted (broadens recall).
+    Reviews/meta-analyses/comments/editorials/letters excluded via
+    Publication Type (NLM-indexed, not a title-text guess)."""
     gene_clause = " OR ".join(f'"{g}"[Title/Abstract]' for g in gene_terms)
     species_clause = " OR ".join(f'"{s}"' for s in species)
     resistance_clause = " OR ".join(f'"{r}"' for r in resistance_terms)
-    return f'({gene_clause}) AND ({species_clause}) AND ({resistance_clause})'
+    return f'({gene_clause}) AND ({species_clause}) AND ({resistance_clause}) NOT ({_exclusion_clause()})'
 
 
 # ── PRE-SPECIFIED INCLUSION / EXCLUSION CRITERIA ────────────────────────
