@@ -45,6 +45,8 @@ CANDIDATE_FIELDS = [
     "pmid",
     "doi",
     "citation_text",
+    "abstract",
+    "auto_extract_notes",
     "source_query",
     "protocol_version",
     "curator",
