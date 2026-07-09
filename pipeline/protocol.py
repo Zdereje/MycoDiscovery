@@ -94,6 +94,26 @@ def build_broad_query(species: List[str], resistance_terms: List[str]) -> str:
 
 BROAD_QUERY = build_broad_query(SPECIES, BROAD_RESISTANCE_TERMS)
 
+# ── M. ABSCESSUS-FOCUSED RESISTANCE QUERY ───────────────────────────────
+# A distinct research question from the target-gene-restricted queries above:
+# comprehensively find resistance mutations in M. abscessus specifically,
+# for ANY compound (approved drugs and early-discovery molecules alike),
+# not restricted to the 46 preset target genes. Goal: build a resource for
+# predicting cross-resistance in drug discovery, so recall matters more
+# than precision here — no gene restriction, and "cross-resistance" added
+# explicitly as a search term since that's the specific research interest.
+ABSCESSUS_SPECIES = ["Mycobacterium abscessus"]
+ABSCESSUS_RESISTANCE_TERMS = ["resistance", "resistant", "mutation", "mutants"]
+
+
+def build_abscessus_query(species: List[str], resistance_terms: List[str]) -> str:
+    species_clause = " OR ".join(f'"{s}"' for s in species)
+    resistance_clause = " OR ".join(f'"{r}"' for r in resistance_terms)
+    return f'(({species_clause}) AND ({resistance_clause})) NOT ({_exclusion_clause()})'
+
+
+ABSCESSUS_QUERY = build_abscessus_query(ABSCESSUS_SPECIES, ABSCESSUS_RESISTANCE_TERMS)
+
 
 def build_query(gene_terms: List[str], species: List[str], resistance_terms: List[str]) -> str:
     """Gene/locus terms restricted to Title/Abstract (keeps precision).
