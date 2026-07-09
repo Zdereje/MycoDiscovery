@@ -84,18 +84,28 @@ def main():
     all_records = []
     n_flagged_review = 0
     for rec in records:
-        extracted = auto_extract(rec.abstract)
+        extracted = auto_extract(rec.abstract, species_hint="Mycobacterium abscessus")
         if extracted.is_likely_review:
             n_flagged_review += 1
         candidates.append({
             "target_id": "abscessus_broad",
             "target_name": "M. abscessus cross-resistance search — identify specific gene/target during curation",
+            "compound_name": extracted.compound_name,
+            "compound_class": extracted.compound_class,
+            "Bacteria": extracted.bacteria,  # always at least "Mycobacterium abscessus" via species_hint
+            "Method": extracted.method,
+            "MIC [ug/mL]": extracted.mic,
+            "phase_or_status": extracted.phase_or_status,
+            "ClinicalTrials.gov ID": extracted.clinicaltrials_id,
+            "mechanism": extracted.mechanism,
+            "Gene": extracted.gene,
+            "Function": extracted.function,
+            "Mutations": extracted.mutations,
             "pmid": rec.pmid,
             "doi": rec.doi or "",
             "citation_text": f"{rec.authors}. {rec.title} {rec.journal}. {rec.year}. PMID:{rec.pmid}",
             "abstract": rec.abstract,
             "auto_extract_notes": extracted.notes,
-            "Bacteria": "Mycobacterium abscessus",
             "source_query": ABSCESSUS_QUERY,
             "protocol_version": PROTOCOL_VERSION,
             "curator": "",
