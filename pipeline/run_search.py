@@ -39,6 +39,32 @@ from auto_extract import auto_extract
 
 DATA_DIR = Path("data")
 
+# Fallback source for the "Function" column when auto-extraction finds
+# nothing in the abstract text itself — this is background fact about the
+# TARGET (not something extracted from this specific paper), so it's safe
+# to always fill from here. Looks for the published JSON at the
+# conventional repo path (../data/ relative to pipeline/); falls back to
+# an empty map (Function stays blank) if not found, rather than erroring.
+def _load_function_map() -> dict:
+    candidate_paths = [
+        Path("../data/mycodiscovery_targets_v1.json"),
+        Path("data/mycodiscovery_targets_v1.json"),
+    ]
+    for p in candidate_paths:
+        if p.exists():
+            db = json.loads(p.read_text())
+            return {
+                t["id"]: t["function"]
+                for cat in db["categories"] for t in cat["targets"]
+            }
+    print("NOTE: mycodiscovery_targets_v1.json not found at expected paths — "
+          "Function column will only be filled where auto-extraction finds "
+          "something directly in the abstract, not from target metadata.")
+    return {}
+
+
+FUNCTION_MAP = _load_function_map()
+
 # How many broad-query results to actually fetch full details for. PubMed's
 # TOTAL hit count for this query will almost certainly be far larger — the
 # script reports that total so you can see how much is being left unfetched,
@@ -77,10 +103,25 @@ def main():
 
         records = client.fetch_summaries(new_pmids, source_query=query, protocol_version=PROTOCOL_VERSION)
         for rec in records:
-            extracted = auto_extract(rec.abstract)
+            extracted = auto_extract(rec.abstract, species_hint="")
             candidates.append({
                 "target_id": target.id,
                 "target_name": target.name,
+                "compound_name": extracted.compound_name,
+                "compound_class": extracted.compound_class,
+                "Bacteria": extracted.bacteria,
+                "Method": extracted.method,
+                "MIC [ug/mL]": extracted.mic,
+                "phase_or_status": extracted.phase_or_status,
+                "ClinicalTrials.gov ID": extracted.clinicaltrials_id,
+                "mechanism": extracted.mechanism,
+                # Gene/Function fall back to the KNOWN target identity (from
+                # protocol.py) when auto-extraction finds nothing in the
+                # abstract text — this is background fact about the target,
+                # not an extraction, so it's safe to always fill.
+                "Gene": extracted.gene or target.gene_name,
+                "Function": extracted.function or FUNCTION_MAP.get(target.id, ""),
+                "Mutations": extracted.mutations,
                 "pmid": rec.pmid,
                 "doi": rec.doi or "",
                 "citation_text": f"{rec.authors}. {rec.title} {rec.journal}. {rec.year}. PMID:{rec.pmid}",
@@ -89,14 +130,10 @@ def main():
                 "source_query": query,
                 "protocol_version": PROTOCOL_VERSION,
                 "curator": "",
-                # compound_name, compound_class, Bacteria, Type, Method,
-                # "MIC [ug/mL]", phase_or_status, "ClinicalTrials.gov ID",
-                # mechanism, "Reference genome", Gene, Function, Mutations
-                # are intentionally left blank — the curator fills these in
-                # after reading the paper (now with the abstract text and
-                # auto_extract_notes right there in the same row to work
-                # from). init_candidate_csv defaults verification_status
-                # to "pending".
+                # Type, "Reference genome" still intentionally blank — no
+                # reliable auto-extraction signal for these yet.
+                # verification_status still defaults to "pending" in
+                # init_candidate_csv — auto-filled fields are NOT auto-verified.
             })
             all_records.append({"target_id": target.id, **rec.__dict__})
 
@@ -125,6 +162,21 @@ def main():
         candidates.append({
             "target_id": "unlisted",
             "target_name": "NOT on preset target list — identify gene/target from paper during curation",
+            "compound_name": extracted.compound_name,
+            "compound_class": extracted.compound_class,
+            "Bacteria": extracted.bacteria,
+            "Method": extracted.method,
+            "MIC [ug/mL]": extracted.mic,
+            "phase_or_status": extracted.phase_or_status,
+            "ClinicalTrials.gov ID": extracted.clinicaltrials_id,
+            "mechanism": extracted.mechanism,
+            # No target fallback here (this is the gene-UNRESTRICTED query,
+            # by design there's no preset target to fall back to) — Gene/
+            # Function only fill when auto-extraction actually found
+            # something in the abstract text itself.
+            "Gene": extracted.gene,
+            "Function": extracted.function,
+            "Mutations": extracted.mutations,
             "pmid": rec.pmid,
             "doi": rec.doi or "",
             "citation_text": f"{rec.authors}. {rec.title} {rec.journal}. {rec.year}. PMID:{rec.pmid}",
